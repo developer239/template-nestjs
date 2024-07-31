@@ -1,0 +1,23 @@
+import { InternalServerErrorException, Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { DataSource } from 'typeorm'
+import { TypeOrmConfigService } from 'src/modules/database/typeorm-config.service'
+
+@Module({
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+      dataSourceFactory: async (options) => {
+        if (!options) {
+          throw new InternalServerErrorException(
+            'No options provided to TypeOrmModule.forRootAsync'
+          )
+        }
+
+        const dataSource = await new DataSource(options).initialize()
+        return dataSource
+      },
+    }),
+  ],
+})
+export class DatabaseModule {}

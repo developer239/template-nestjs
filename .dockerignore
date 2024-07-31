@@ -1,0 +1,22 @@
+# Version control directories
+.git/
+
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+
+# Configuration files
+.editorconfig
+.gitignore
+*.yml
+
+# Development tools configurations
+.idea/
+.vscode/
+
+# Other non-required files and directories
+.db/
+.husky/
+infra/

@@ -1,0 +1,49 @@
+name: CI App
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint-test:
+    name: Lint & Test
+    runs-on: ubuntu-20.04
+
+    env:
+      NODE_ENV: ci
+      DATABASE_NAME: api_db_test
+      DATABASE_USER: root
+      DATABASE_PASSWORD: secret
+      DATABASE_TEST_URL: postgres://root:secret@localhost:5432/api_db_test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20.9.0'
+          cache: 'yarn'
+
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '14'
+          postgresql db: ${{ env.DATABASE_NAME }}
+          postgresql user: ${{ env.DATABASE_USER }}
+          postgresql password: ${{ env.DATABASE_PASSWORD }}
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint Check
+        run: make lint-check
+
+      - name: Copy env configuration
+        run: cp .env.template .env
+
+      - name: Run Migrations on Test Database
+        run: |
+          npx env-cmd -f .env env-cmd -f .env.test ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource=src/modules/database/data-source.ts migration:run
+
+      - name: Run tests
+        run: make test
